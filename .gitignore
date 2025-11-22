@@ -1,0 +1,13 @@
+# Carpetas de compilación y temporales
+/bin/
+/obj/
+
+# Archivos de configuración sensibles/locales
+appsettings.Development.json
+
+# Archivos de usuario de Visual Studio/IDE
+*.user
+*.suo
+
+# Archivos de NuGet
+*.nupkg

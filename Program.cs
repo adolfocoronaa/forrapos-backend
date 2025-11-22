@@ -48,15 +48,6 @@ public class Program
                             builder.WithOrigins(allowedOrigins)
                                 .AllowAnyMethod()
                                 .AllowAnyHeader();
-                            
-                            // Política de producción: si la URL de origen no está en la lista (como localhost), permitimos cualquier origen
-                            // Esto simplifica la prueba cuando el frontend esté en Azure Static Web Apps.
-                            if (allowedOrigins == null || allowedOrigins.Length == 0)
-                            {
-                                builder.AllowAnyOrigin() 
-                                        .AllowAnyMethod()
-                                        .AllowAnyHeader();
-                            }
                         });
                     });
                 });

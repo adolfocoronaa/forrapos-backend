@@ -63,7 +63,8 @@ public class AuthController : ControllerBase
 
         if (usuario == null || !BCrypt.Net.BCrypt.Verify(model.Password, usuario.Password))
         {
-            return Unauthorized(new { message = "Correo o contraseña incorrectos" });
+            // Mensaje unificado para evitar enumeración de usuarios.
+            return Unauthorized(new { message = "Usuario o contraseña no válidos. Inténtalo de nuevo." });
         }
 
         usuario.IsActive = true;

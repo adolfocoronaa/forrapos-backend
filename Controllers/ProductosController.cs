@@ -24,7 +24,39 @@ namespace Inventario.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Producto>>> GetProductos()
         {
-            return await _context.Productos.ToListAsync();
+            var productos = await _context.Productos.ToListAsync();
+
+            // Obtiene la base de la URL (Ej: https://forrapos-api-backend.azurewebsites.net)
+            var urlBase = $"{Request.Scheme}://{Request.Host}";
+
+            foreach (var producto in productos)
+            {
+                // Solo si ImagenUrl contiene una ruta relativa, la convierte en URL completa.
+                // También soluciona el problema de tus URLs viejas de localhost:5233/
+                if (!string.IsNullOrEmpty(producto.ImagenUrl) && !producto.ImagenUrl.StartsWith(urlBase))
+                {
+                    // Verifica si la URL es la vieja (que tiene http://localhost:5233)
+                    if (producto.ImagenUrl.StartsWith("http://localhost"))
+                    {
+                        // Extrae solo la ruta relativa de la URL antigua
+                        // (Ej: de "http://localhost:5233/imagenes/productos/..." a "/imagenes/productos/...")
+                        var uri = new System.Uri(producto.ImagenUrl);
+                        producto.ImagenUrl = urlBase + uri.LocalPath;
+                    }
+                    // Si es la ruta relativa correcta (que ahora guardamos en el POST/PUT)
+                    else if (producto.ImagenUrl.StartsWith("/"))
+                    {
+                        producto.ImagenUrl = urlBase + producto.ImagenUrl;
+                    }
+                    else
+                    {
+                        // Si la ruta relativa no empieza con /, añade el /
+                        producto.ImagenUrl = urlBase + "/" + producto.ImagenUrl;
+                    }
+                }
+            }
+
+            return productos;
         }
 
         // GET: api/productos/5
@@ -64,7 +96,7 @@ namespace Inventario.Controllers
                     await imagen.CopyToAsync(stream);
                 }
 
-                producto.ImagenUrl = $"{Request.Scheme}://{Request.Host}/imagenes/productos/{nombreArchivo}";
+                producto.ImagenUrl = $"/imagenes/productos/{nombreArchivo}";
             }
 
             _context.Productos.Add(producto);
@@ -98,7 +130,7 @@ namespace Inventario.Controllers
             productoExistente.descripcion = productoActualizado.descripcion; // Asegúrate que tu modelo y formulario lo envíen
             productoExistente.Price = productoActualizado.Price;
             productoExistente.Stock = productoActualizado.Stock;
-            
+
             // Lógica para actualizar la imagen (similar a la de Crear)
             if (imagen != null)
             {
@@ -112,7 +144,7 @@ namespace Inventario.Controllers
                 {
                     await imagen.CopyToAsync(stream);
                 }
-                productoExistente.ImagenUrl = $"{Request.Scheme}://{Request.Host}/imagenes/productos/{nombreArchivo}";
+                productoExistente.ImagenUrl = $"/imagenes/productos/{nombreArchivo}";
             }
 
             try

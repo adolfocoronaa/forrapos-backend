@@ -37,12 +37,13 @@ namespace Inventario.Controllers
                 {
                     // Verifica si la URL es la vieja (que tiene http://localhost:5233)
                     if (producto.ImagenUrl.StartsWith("http://localhost"))
-                    {
-                        // Extrae solo la ruta relativa de la URL antigua
-                        // (Ej: de "http://localhost:5233/imagenes/productos/..." a "/imagenes/productos/...")
-                        var uri = new System.Uri(producto.ImagenUrl);
-                        producto.ImagenUrl = urlBase + uri.LocalPath;
-                    }
+                        {
+                            // 1. Extrae solo la ruta relativa (Ej: /imagenes/productos/alfalfa.jpg)
+                            var uri = new System.Uri(producto.ImagenUrl);
+                            
+                            // 2. Concatena: urlBase + /ruta/relativa
+                            producto.ImagenUrl = urlBase + uri.LocalPath; // <-- ¡Esto está bien!
+                        }
                     // Si es la ruta relativa correcta (que ahora guardamos en el POST/PUT)
                     else if (producto.ImagenUrl.StartsWith("/"))
                     {

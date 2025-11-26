@@ -31,30 +31,24 @@ namespace Inventario.Controllers
 
             foreach (var producto in productos)
             {
-                // Solo si ImagenUrl contiene una ruta relativa, la convierte en URL completa.
-                // También soluciona el problema de tus URLs viejas de localhost:5233/
-                if (!string.IsNullOrEmpty(producto.ImagenUrl) && !producto.ImagenUrl.StartsWith(urlBase))
+                // 🛑 LÓGICA SIMPLIFICADA Y ROBUSTA: 
+                // Si la ImagenUrl existe Y es una ruta relativa (empieza con '/'), la completamos.
+                if (!string.IsNullOrEmpty(producto.ImagenUrl) && producto.ImagenUrl.StartsWith("/"))
                 {
-                    // Verifica si la URL es la vieja (que tiene http://localhost:5233)
-                    if (producto.ImagenUrl.StartsWith("http://localhost"))
-                        {
-                            // 1. Extrae solo la ruta relativa (Ej: /imagenes/productos/alfalfa.jpg)
-                            var uri = new System.Uri(producto.ImagenUrl);
-                            
-                            // 2. Concatena: urlBase + /ruta/relativa
-                            producto.ImagenUrl = urlBase + uri.LocalPath; // <-- ¡Esto está bien!
-                        }
-                    // Si es la ruta relativa correcta (que ahora guardamos en el POST/PUT)
-                    else if (producto.ImagenUrl.StartsWith("/"))
+                    // Usa Uri.TryCreate para concatenar la base sin importar si hay o no una barra extra.
+                    // Esto evita el problema de las dobles barras o la duplicación completa.
+                    if (System.Uri.TryCreate(new System.Uri(urlBase), producto.ImagenUrl, out System.Uri fullUri))
                     {
-                        producto.ImagenUrl = urlBase + producto.ImagenUrl;
+                        producto.ImagenUrl = fullUri.ToString();
                     }
                     else
                     {
-                        // Si la ruta relativa no empieza con /, añade el /
-                        producto.ImagenUrl = urlBase + "/" + producto.ImagenUrl;
+                        // Si TryCreate falla, usa la concatenación manual, asegurándonos de que solo haya una barra.
+                        producto.ImagenUrl = urlBase.TrimEnd('/') + producto.ImagenUrl;
                     }
                 }
+                // Si ya contiene 'http', la dejamos como está (porque ya fue resuelta o es de un CDN)
+                // Si es null o vacía, la dejamos así.
             }
 
             return productos;
